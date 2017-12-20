@@ -1,11 +1,6 @@
 package com.bss.arrahmanlyrics.adapter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import android.content.Context;
-import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,22 +11,26 @@ import android.widget.TextView;
 
 import com.bss.arrahmanlyrics.MainActivity;
 import com.bss.arrahmanlyrics.R;
-import com.bss.arrahmanlyrics.models.albumModel;
-import com.bss.arrahmanlyrics.models.albumsongs;
+import com.bss.arrahmanlyrics.mysqlConnection.models.albums;
+import com.bss.arrahmanlyrics.mysqlConnection.models.songs;
 import com.bss.arrahmanlyrics.utils.Helper;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
-public class ExpandableListAdapter extends BaseExpandableListAdapter {
+public class ExpandableListAdapterMysql extends BaseExpandableListAdapter {
 
 	private Context _context;
-	private List<albumModel> _listDataHeader; // header titles
+	private List<albums> _listDataHeader; // header titles
 	MainActivity activity;
 	// child data in format of header title, child title
-	private HashMap<String, List<albumsongs>> _listDataChild;
+	private HashMap<String, List<songs>> _listDataChild;
 
-	public ExpandableListAdapter(Context context, List<albumModel> listDataHeader,
-	                             HashMap<String, List<albumsongs>> listChildData, MainActivity activity) {
+	public ExpandableListAdapterMysql(Context context, List<albums> listDataHeader,
+                                      HashMap<String, List<songs>> listChildData, MainActivity activity) {
 		this._context = context;
 		this._listDataHeader = listDataHeader;
 		this._listDataChild = listChildData;
@@ -39,9 +38,8 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 	}
 
 	@Override
-	public albumsongs getChild(int groupPosition, int childPosititon) {
-		return this._listDataChild.get(this._listDataHeader.get(groupPosition).getMovietitle())
-				.get(childPosititon);
+	public songs getChild(int groupPosition, int childPosititon) {
+		return this._listDataHeader.get(groupPosition).getSonglist().get(childPosititon);
 	}
 
 	@Override
@@ -53,8 +51,8 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 	public View getChildView(int groupPosition, final int childPosition,
 	                         boolean isLastChild, View convertView, ViewGroup parent) {
 
-		albumsongs songs = getChild(groupPosition, childPosition);
-		Log.i(TAG, "getChildView: " + String.valueOf(songs));
+		songs song = getChild(groupPosition, childPosition);
+		Log.i(TAG, "getChildView: " + String.valueOf(song));
 
 		if (convertView == null) {
 			LayoutInflater infalInflater = (LayoutInflater) this._context
@@ -64,9 +62,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 		TextView trackNo = (TextView) convertView.findViewById(R.id.trackNo);
 		TextView lyricist = (TextView) convertView.findViewById(R.id.Songlyricist);
 		TextView songtitle = (TextView) convertView.findViewById(R.id.Songtitle);
-		trackNo.setText(songs.getTrackNo());
-		lyricist.setText(Helper.FirstLetterCaps(songs.getLyricistNames()));
-		songtitle.setText(Helper.FirstLetterCaps(songs.getSongName()));
+		trackNo.setText(String.valueOf(song.getTrack_no()));
+		lyricist.setText(Helper.FirstLetterCaps(song.getLyricist()));
+		songtitle.setText(Helper.FirstLetterCaps(song.getSong_title()));
 		return convertView;
 	}
 
@@ -74,12 +72,12 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 	public int getChildrenCount(int groupPosition) {
 		Log.i(TAG, "getChildrenCount: " + _listDataChild);
 
-		return this._listDataChild.get(this._listDataHeader.get(groupPosition).getMovietitle())
-				.size();
+		return this._listDataHeader.get(groupPosition).getSonglist().size();
+
 	}
 
 	@Override
-	public albumModel getGroup(int groupPosition) {
+	public albums getGroup(int groupPosition) {
 		return this._listDataHeader.get(groupPosition);
 	}
 
@@ -96,7 +94,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded,
 	                         View convertView, ViewGroup parent) {
-		albumModel album = getGroup(groupPosition);
+		albums album = getGroup(groupPosition);
 		if (convertView == null) {
 			LayoutInflater infalInflater = (LayoutInflater) this._context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -106,10 +104,10 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 		TextView title = (TextView) convertView.findViewById(R.id.Title);
 		TextView count = (TextView) convertView.findViewById(R.id.TotalSongs);
 		ImageView thumbnail = (ImageView) convertView.findViewById(R.id.albumimg);
-		title.setText(Helper.FirstLetterCaps(album.getMovietitle()));
-		count.setText(album.getNumOfSongs() + " songs");
+		title.setText(Helper.FirstLetterCaps(album.getAlbum_name()));
+		count.setText(album.getSonglist().size() + " songs");
 		//Glide.with(context).load(album.getImageString()).into(holder.thumbnail);
-		thumbnail.setImageBitmap(activity.getImageBitmap(album.getMovietitle()));
+		thumbnail.setImageBitmap(activity.getImageBitmap(album.getAlbum_name()));
 
 		return convertView;
 	}
@@ -133,28 +131,28 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
 	}*/
 
-	public void filterData(List<albumModel> models,HashMap<String,List<albumsongs>> map, String query) {
+	public void filterData(List<albums> models,HashMap<String,List<songs>> map, String query) {
 
 		query = query.toLowerCase().trim();
 
-		List<albumModel> dummy = new ArrayList<>();
-		HashMap<String, List<albumsongs>> dummy2 = new HashMap<>();
+		List<albums> dummy = new ArrayList<>();
+		HashMap<String, List<songs>> dummy2 = new HashMap<>();
 
-		for (albumModel model : models) {
+		for (albums model : models) {
 
-			String name = model.getMovietitle().toLowerCase();
+			String name = model.getAlbum_name().toLowerCase();
 			String songname = "";
 			String lyrics="";
 			String year="";
-			List<albumsongs> songs = map.get(model.getMovietitle());
-			for(albumsongs s : songs){
-				songname = s.getSongName().toLowerCase();
-				lyrics = s.getLyricistNames().toLowerCase();
-				year = s.getYear();
+			List<songs> songs = map.get(model.getAlbum_name());
+			for(songs s : songs){
+				songname = s.getSong_title().toLowerCase();
+				lyrics = s.getLyricist().toLowerCase();
+				year = String.valueOf(model.getYear());
 				if(name.contains(query)||songname.contains(query)||lyrics.contains(query)||year.contains(query)){
-					if(!dummy2.containsKey(model.getMovietitle())){
+					if(!dummy2.containsKey(model.getAlbum_name())){
 						dummy.add(model);
-						dummy2.put(model.getMovietitle(), map.get(model.getMovietitle()));
+						dummy2.put(model.getAlbum_name(), model.getSonglist());
 					}
 
 				}
@@ -171,14 +169,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 		}
 		notifyDataSetChanged();
 	}
-	public HashMap<String,List<albumsongs>> get_listDataChild(){
-		return _listDataChild;
-	}
-	public List<albumModel> get_listDataHeader(){
-		return _listDataHeader;
-	}
 
-	public void setall(List<albumModel> models,HashMap<String,List<albumsongs>> map){
+
+	public void setall(List<albums> models,HashMap<String,List<songs>> map){
 		if(models !=null && map != null) {
 			_listDataHeader = new ArrayList<>();
 			_listDataChild = new HashMap<>();
@@ -188,6 +181,11 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 		}
 
 	}
-
+	public HashMap<String,List<songs>> get_listDataChild(){
+		return _listDataChild;
+	}
+	public List<albums> get_listDataHeader(){
+		return _listDataHeader;
+	}
 }
 

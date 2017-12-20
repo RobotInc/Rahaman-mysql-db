@@ -8,22 +8,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -48,13 +44,13 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bss.arrahmanlyrics.adapter.ExpandableListAdapter;
-import com.bss.arrahmanlyrics.adapter.FavoriteSongAdapter;
+import com.bss.arrahmanlyrics.adapter.ExpandableListAdapterMysql;
 import com.bss.arrahmanlyrics.adapter.SongAdapter;
-import com.bss.arrahmanlyrics.models.albumModel;
-import com.bss.arrahmanlyrics.models.albumsongs;
 import com.bss.arrahmanlyrics.models.song;
 import com.bss.arrahmanlyrics.models.songModel;
+import com.bss.arrahmanlyrics.mysqlConnection.database;
+import com.bss.arrahmanlyrics.mysqlConnection.models.albums;
+import com.bss.arrahmanlyrics.mysqlConnection.models.songs;
 import com.bss.arrahmanlyrics.utils.CustomViewPager;
 import com.bss.arrahmanlyrics.utils.DividerItemDecoration;
 import com.bss.arrahmanlyrics.utils.Helper;
@@ -87,7 +83,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +91,8 @@ import java.util.TreeSet;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
 import io.fabric.sdk.android.Fabric;
+
+
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, MusicService.mainActivityCallback, SearchView.OnQueryTextListener {
 
@@ -117,9 +114,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 	RecyclerView rv1, rv3;
 	SlidingUpPanelLayout favoritePanel;
 	SongAdapter songadapter;
-	List<albumModel> albumList;
+	//List<albumModel> albumList;
 	List<songModel> songList;
-	List<albumsongs> albumsongsList;
+	//List<albumsongs> albumsongsList;
 	List<songModel> filteredSongList;
 	ArrayList<song> playlist = new ArrayList<>();
 
@@ -129,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
 	//database values
 	public HashMap<String, Object> values = new HashMap<>();
-	private HashMap<String, List<albumsongs>> _listDataChild;
+	private HashMap<String, List<songs>> _listDataChild;
 	HashMap<String, ArrayList<String>> favoritesMab;
 	HashMap<String, Bitmap> albumcovers;
 
@@ -150,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 	private Handler mHandler = new Handler();
 
 
-	ExpandableListAdapter adapter;
+	ExpandableListAdapterMysql adapter;
 	BottomNavigationView bottomMenu;
 	FavFragment favFragment;
 	about aboutFragment;
@@ -207,6 +204,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 			initUI();
 			Toast.makeText(this, "signed in as " + user.getEmail(), Toast.LENGTH_LONG).show();
 		}
+
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				database.connect();
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						prepareAlbums();
+						prepareSongs();
+					}
+				});
+
+
+			}
+		});
+		t.start();
 	}
 
 	@Override
@@ -563,7 +577,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
 		albumsearch.setQueryHint("name,movie,year & lyricist");
 
-		albumsearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+		/*albumsearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String s) {
 				return false;
@@ -585,13 +599,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 				}
 				return false;
 			}
-		});
+		});*/
 
 	}
 
 	private void setUpAlbumList() {
-		albumList = new ArrayList<>();
-		albumsongsList = new ArrayList<>();
+		//albumList = new ArrayList<>();
+		//albumsongsList = new ArrayList<>();
 
 		prepareAlbums();
 
@@ -709,7 +723,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 		List<songModel> list = new ArrayList<>();
 		SortedSet<String> trackNos = new TreeSet<>();
 
-		for (String albums : values.keySet()) {
+		/*for (String albums : values.keySet()) {
 			HashMap<String, Object> songs = (HashMap<String, Object>) values.get(albums);
 
 			for (String song : songs.keySet()) {
@@ -740,8 +754,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 				}
 			}
 
+		}*/
+		for(albums a : database.albumlist){
+			for(songs s : a.getSonglist()){
+				songModel aSong = new songModel(
+						a.getAlbum_name(),
+						s.getSong_title(),
+						s.getLyricist(),
+						s.getDownload_link(),
+						a.getYear()
+				);
+				songList.add(aSong);
+			}
 		}
-
 		totalSongs = songList.size();
 		filteredSongList = songList;
 		songadapter.notifyDataSetChanged();
@@ -793,11 +818,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 	}
 
 	private void prepareAlbums() {
-		albumList.clear();
+		//albumList.clear();
 
 		_listDataChild = new HashMap<>();
 
-		List<albumModel> list = new ArrayList<>();
+		/*List<albumModel> list = new ArrayList<>();
 
 		SortedSet<String> trackNos = new TreeSet<>();
 		for (String album : values.keySet()) {
@@ -822,27 +847,30 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
 				}
 			}
-		}
+		}*/
 
+		for(albums s:database.albumlist){
+			_listDataChild.put(s.getAlbum_name(),s.getSonglist());
+		}
 		for (String name : _listDataChild.keySet()) {
 			Log.i(TAG, "prepareAlbums: " + name + " " + _listDataChild.get(name).size());
 		}
-		adapter = new ExpandableListAdapter(this, albumList, _listDataChild, MainActivity.this);
+		adapter = new ExpandableListAdapterMysql(this, database.albumlist, _listDataChild, MainActivity.this);
 		final ExpandableListView albumview = (ExpandableListView) findViewById(R.id.rv2);
 		albumview.setAdapter(adapter);
 		albumview.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
 			@Override
 			public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
-				List<albumModel> model = adapter.get_listDataHeader();
-				HashMap<String, List<albumsongs>> map = adapter.get_listDataChild();
+				List<albums> model = adapter.get_listDataHeader();
+				HashMap<String, List<songs>> map = adapter.get_listDataChild();
 
 
-				List<albumsongs> songlistalbums = map.get(model.get(i).getMovietitle());
+				List<songs> songlistalbums = map.get(model.get(i).getAlbum_name());
 				StorageUtil storageUtil = new StorageUtil(getApplicationContext());
 
 				playlist.clear();
-				for (albumsongs songs : songlistalbums) {
-					song s = new song(model.get(i).getMovietitle(), songs.getSongName(), songs.getUlr());
+				for (songs songs : songlistalbums) {
+					song s = new song(model.get(i).getAlbum_name(), songs.getSong_title(), songs.getDownload_link());
 					playlist.add(s);
 				}
 				storageUtil.storeAudio(playlist);
@@ -867,7 +895,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 		//Bitmap resized = Bitmap.createScaledBitmap(bitmap, 65, 65, false);
 		return bitmap;
 	}
-	public List<albumsongs> getSortedList(List<albumsongs> list) {
+	/*public List<albumsongs> getSortedList(List<albumsongs> list) {
 		SortedSet<Integer> trackNos = new TreeSet<>();
 		List<albumsongs> sorted = new ArrayList<>();
 		for (albumsongs songs : list) {
@@ -883,7 +911,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 		}
 
 		return sorted;
-	}
+	}*/
 
 
 
@@ -1061,14 +1089,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 		songname.setText(Helper.FirstLetterCaps(songTitle));
 		moviename.setText(Helper.FirstLetterCaps(movieTitle));
 
-		HashMap<String, Object> songs = (HashMap<String, Object>) values.get(movieTitle);
-		HashMap<String, Object> songlyrics = (HashMap<String, Object>) songs.get(songTitle);
-		String english1 = String.valueOf(songlyrics.get("English"));
-		String english2 = String.valueOf(songlyrics.get("EnglishOne"));
+		//HashMap<String, Object> songs = (HashMap<String, Object>) values.get(movieTitle);
+		//HashMap<String, Object> songlyrics = (HashMap<String, Object>) songs.get(songTitle);
+		String english1 = database.getLyricsOne(movieTitle,songTitle);
+		String english2 = database.getLyricsTwo(movieTitle,songTitle);
 		englishFragment.setLyrics(english1, english2);
 
-		String tamil1 = String.valueOf(songlyrics.get("Others"));
-		String tamil2 = String.valueOf(songlyrics.get("OthersOne"));
+		String tamil1 = database.getLyricsThree(movieTitle,songTitle);
+		String tamil2 = database.getLyricsFour(movieTitle,songTitle);
 		tamilFragment.setLyrics(tamil1, tamil2);
 
 
