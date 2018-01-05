@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 	ProgressDialog dialog;
 	int count;
 
-
+	Thread t;
 	boolean ascending = true, ascendingyear = true;
 	public static final String Broadcast_PLAY_NEW_AUDIO = "com.bss.arrahmanlyrics.activites.PlayNewAudio";
 	public static final String Broadcast_NEW_ALBUM = "com.bss.arrahmanlyrics.activites.PlayNewAlbum";
@@ -202,10 +202,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 			signIn();
 		} else {
 			initUI();
+
 			Toast.makeText(this, "signed in as " + user.getEmail(), Toast.LENGTH_LONG).show();
 		}
 
-		Thread t = new Thread(new Runnable() {
+		t = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				database.connect();
@@ -221,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 			}
 		});
 		t.start();
+
 	}
 
 	@Override
@@ -335,6 +337,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 						if (task.isSuccessful()) {
 							user = mFirebaseAuth.getCurrentUser();
 							initUI();
+
 						}
 
 						//userEmailId.setText(user.getEmail());
@@ -516,6 +519,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 					setUpAlbumList();
 					setUpSongList();
 					setUpFavorites();
+
 					dialog.hide();
 				}
 			}

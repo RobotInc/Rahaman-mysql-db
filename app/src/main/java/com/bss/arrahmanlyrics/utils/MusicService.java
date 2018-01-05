@@ -22,7 +22,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v7.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -384,18 +384,18 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 		PendingIntent pendInt = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		// Create a new Notification
-		notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
+		notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this,"rahman")
 				.setShowWhen(false)
 				.setAutoCancel(false)
 				.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 				.setCategory(Intent.CATEGORY_APP_MUSIC)
 				.setPriority(Notification.PRIORITY_DEFAULT)
 				// Set the Notification style
-				.setStyle(new NotificationCompat.MediaStyle()
+				/*.setStyle(new NotificationCompat.Style()
 						// Attach our MediaSession token
 						.setMediaSession(mediaSession.getSessionToken())
 						// Show our playback controls in the compact notification view.
-						.setShowActionsInCompactView(0, 1, 2))
+						.setShowActionsInCompactView(0, 1, 2))*/
 
 				// Set the Notification color
 				.setColor(getResources().getColor(R.color.colorPrimary))

@@ -2,11 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Rahaman-mysql-db.iml" filepath="$PROJECT_DIR$/.idea/Rahaman-mysql-db.iml" />
       <module fileurl="file://$PROJECT_DIR$/Rahaman-mysql-db.iml" filepath="$PROJECT_DIR$/Rahaman-mysql-db.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Rahaman-mysql-db.iml" filepath="$PROJECT_DIR$/.idea/Rahaman-mysql-db.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://F:/android projects/updatingProjectsRahman-master/app/app.iml" filepath="F:/android projects/updatingProjectsRahman-master/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/../updatingProjectsRahman/updatingProjects.iml" filepath="$PROJECT_DIR$/../updatingProjectsRahman/updatingProjects.iml" />
       <module fileurl="file://F:/android projects/updatingProjectsRahman-master/updatingProjectsRahman.iml" filepath="F:/android projects/updatingProjectsRahman-master/updatingProjectsRahman.iml" />
       <module fileurl="file://F:/android projects/updatingProjectsRahman-master/.idea/updatingProjectsRahman.iml" filepath="F:/android projects/updatingProjectsRahman-master/.idea/updatingProjectsRahman.iml" />
