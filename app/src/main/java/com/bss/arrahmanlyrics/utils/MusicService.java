@@ -391,13 +391,14 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 				.setCategory(Intent.CATEGORY_APP_MUSIC)
 				.setPriority(Notification.PRIORITY_DEFAULT)
 				// Set the Notification style
-				/*.setStyle(new NotificationCompat.Style()
-						// Attach our MediaSession token
-						.setMediaSession(mediaSession.getSessionToken())
-						// Show our playback controls in the compact notification view.
-						.setShowActionsInCompactView(0, 1, 2))*/
+				.setStyle(new NotificationCompat.Style() {
+					@Override
+					public void setBuilder(NotificationCompat.Builder builder) {
+						super.setBuilder(builder);
+					}
+				})
 
-				// Set the Notification color
+
 				.setColor(getResources().getColor(R.color.colorPrimary))
 				// Set the large and small icons
 				.setLargeIcon(Icon)
